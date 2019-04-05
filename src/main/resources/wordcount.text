@@ -1,1 +1,28 @@
-srbwerhbnwrts se thneryjm etmejtymsdvcb sr wrjwj
+Adjusting the default tuning of the Linux networking stack is common for any appli‐cation  that
+generates  a  high  amount  of  network  traffic,  as  the  kernel  is  not  tuned  bydefault
+for  large,  high-speed  data  transfers.  In  fact,  the  recommended  changes  forKafka  are
+the  same  as  those  suggested  for  most  web  servers  and  other  networkingapplications.
+The  first  adjustment  is  to  change  the  default  and  maximum  amount  ofmemory  allocated
+for  the  send  and  receive  buffers  for  each  socket.  This  will  signifi‐cantly increase
+performance for large transfers. The relevant parameters for the sendand   receive   buffer
+default   size   per   socket   are   net.core.wmem_default   andnet.core.rmem_default, and a
+reasonable setting for these parameters is 131072, or128  KiB.  The  parameters  for  the  send
+and  receive  buffer  maximum  sizes  arenet.core.wmem_max and net.core.rmem_max, and a reasonable
+setting is 2097152, or2 MiB. Keep in mind that the maximum size does not indicate that every
+socket willhave this much buffer space allocated; it only allows up to that much if needed.In
+addition  to  the  socket  settings,  the  send  and  receive  buffer  sizes  for  TCP  socketsmust
+be set separately using the net.ipv4.tcp_wmem and net.ipv4.tcp_rmem param‐eters.  These  are  set
+using  three  space-separated  integers  that  specify  the  minimum,default,  and  maximum  sizes,
+respectively.  The  maximum  size  cannot  be  larger  thanthe      values      specified      for
+all      sockets      using      net.core.wmem_maxandnet.core.rmem_max. An example setting for each
+of these parameters is “4096 655362048000,”  which  is  a  4  KiB  minimum,  64  KiB  default,  and
+2  MiB  maximum  buffer.Based  on  the  actual  workload  of  your  Kafka  brokers,  you  may  want
+to  increase  themaximum sizes to allow for greater buffering of the network connections.There  are
+several  other  network  tuning  parameters  that  are  useful  to  set.  EnablingTCP window scaling
+by setting net.ipv4.tcp_window_scaling to 1 will allow clientsto transfer data more efficiently, and
+allow that data to be buffered on the broker side.Increasing  the  value  of  net.ipv4.tcp_max_syn_backlog
+above  the  default  of  1024will  allow  a  greater  number  of  simultaneous  connections  to  be
+accepted.  Increasingthe  value  of  net.core.netdev_max_backlog  to  greater  than  the  default
+of  1000  canassist  with  bursts  of  network  traffic,  specifically  when  using  multigigabit
+networkconnection  speeds,  by  allowing  more  packets  to  be  queued  for  the  kernel  to
+process
